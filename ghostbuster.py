@@ -19,6 +19,249 @@ class CurvedConnector(CubicBezier):
 
 class Ghostbuster(Scene):
     def construct(self):
+        brect = Rectangle(
+            height=FRAME_HEIGHT,
+            width=FRAME_WIDTH,
+            color=WHITE,
+            fill_opacity=1,
+        )
+        self.add(brect)
+
+        inp_rect = Rectangle(
+            height=3.75,
+            width=3.0,
+            fill_color="#f3f3f3",
+            fill_opacity=1,
+            stroke_color=BLACK,
+        )
+        inp_rect.move_to(5.5 * LEFT)
+
+        model_rects = VGroup()
+        for i in range(4):
+            model_rects.add(
+                Rectangle(
+                    height=1.0,
+                    width=2.0,
+                    fill_opacity=1,
+                    fill_color="#d9d2e9",
+                    stroke_color=BLACK,
+                ).move_to(1.5 * i * DOWN)
+            )
+        model_rects.move_to(2.5 * LEFT)
+
+        features = [
+            "max(ada / davinci + ada)",
+            "var(davinci / ada - davinci)",
+            "var(unigram * davinci)",
+            "avg(unigram - ada > davinci)",
+            None,
+            "avg(unigram + trigram < davinci)",
+        ]
+
+        feature_rects = VGroup()
+        for i in range(len(features)):
+            if i == len(features) - 2:
+                dots = Tex(r"\vdots", color=BLACK)
+                dots.scale(1.5)
+                feature_rects.add(dots)
+            else:
+                r = Rectangle(
+                    width=3.75,
+                    height=0.5,
+                    fill_opacity=1,
+                    fill_color="#d0e2f3",
+                    stroke_color=BLACK,
+                )
+                feature_rects.add(r)
+
+                text = Text(features[i], color=BLACK)
+                text.scale(0.45)
+                text.move_to(r)
+                r.add(text)
+
+            feature_rects[-1].shift(0.75 * i * DOWN)
+
+        feature_rects.move_to(0.5 * LEFT, aligned_edge=LEFT)
+
+        lr_rect = Rectangle(
+            width=3.0,
+            height=4.0,
+            fill_opacity=1,
+            fill_color="#fce5cd",
+            stroke_color=BLACK,
+        )
+        lr_rect.move_to(5.5 * RIGHT)
+
+        VGroup(
+            inp_rect,
+            model_rects,
+            feature_rects,
+            lr_rect,
+        ).scale(0.95).center()
+
+        inp_text_raw = """It was a typical\nFriday night, and I\nhad decided to\nspend it at home,\nbrowsing the\ninternet and\ncatching up on some\nof my favorite\nshows. My roommate\nhad gone...\n"""
+        with RegisterFont("Ubuntu") as fonts:
+            inp_text = Text(inp_text_raw, font=fonts[0], color=BLACK)
+            inp_text.scale(0.55)
+        inp_text.move_to(inp_rect)
+
+        with RegisterFont("Ubuntu") as fonts:
+            for i in range(len(model_rects)):
+                model_rects[i].add(
+                    Text(
+                        ["Unigram", "Trigram", "GPT-3 Ada", "GPT-3 Davinci"][i],
+                        font=fonts[0],
+                        color=BLACK,
+                    )
+                    .scale(0.55)
+                    .move_to(model_rects[i])
+                )
+
+            lr_text = Text(
+                "Logistic\nRegression\nClassifier", font=fonts[0], color=BLACK
+            )
+            lr_text.scale(0.55)
+            lr_text.move_to(lr_rect, UP)
+            lr_text.shift(0.25 * DOWN)
+
+            old_center = lr_text[0:8].get_center()
+            lr_text[0:8].move_to([lr_rect.get_center()[0], old_center[1], 0])
+
+            old_center = lr_text[9:22].get_center()
+            lr_text[9:22].move_to([lr_rect.get_center()[0], old_center[1], 0])
+
+            old_center = lr_text[22:].get_center()
+            lr_text[22:].move_to([lr_rect.get_center()[0], old_center[1], 0])
+
+        inp_model_conn = VGroup()
+        for i in range(len(model_rects)):
+            inp_model_conn.add(
+                Line(
+                    inp_rect.get_right(),
+                    model_rects[i].get_left(),
+                    stroke_color=GREY_D,
+                    stroke_opacity=0.75,
+                )
+            )
+
+        model_feature_conn, feature_lr_conn = VGroup(), VGroup()
+        for i in range(len(feature_rects)):
+            if not features[i]:
+                model_feature_conn.add(VGroup())
+                continue
+
+            curr_lines = VGroup()
+            if "unigram" in features[i]:
+                curr_lines.add(
+                    Line(
+                        model_rects[0].get_right(),
+                        feature_rects[i].get_left(),
+                        color=GREY_D,
+                        stroke_opacity=0.75,
+                    )
+                )
+
+            if "trigram" in features[i]:
+                curr_lines.add(
+                    Line(
+                        model_rects[1].get_right(),
+                        feature_rects[i].get_left(),
+                        color=GREY_D,
+                        stroke_opacity=0.75,
+                    )
+                )
+
+            if "ada" in features[i]:
+                curr_lines.add(
+                    Line(
+                        model_rects[2].get_right(),
+                        feature_rects[i].get_left(),
+                        color=GREY_D,
+                        stroke_opacity=0.75,
+                    )
+                )
+
+            if "davinci" in features[i]:
+                curr_lines.add(
+                    Line(
+                        model_rects[3].get_right(),
+                        feature_rects[i].get_left(),
+                        color=GREY_D,
+                        stroke_opacity=0.75,
+                    )
+                )
+
+            model_feature_conn.add(curr_lines)
+            feature_lr_conn.add(
+                Line(
+                    feature_rects[i].get_right(),
+                    lr_rect.get_left(),
+                    color=GREY_D,
+                    stroke_opacity=0.75,
+                )
+            )
+
+        axes = Axes(
+            x_range=(0, 5),
+            y_range=(0, 5),
+            height=2.25,
+            width=2.25,
+            axis_config={"include_tip": False, "color": BLACK, "tick_size": 0.05},
+        )
+        axes.move_to(lr_rect)
+        axes.shift(0.5 * DOWN)
+
+        dots = VGroup()
+        np.random.seed(0)
+        for _ in range(100):
+            x, y = (
+                np.random.uniform(0, 5),
+                np.random.uniform(0, 5),
+            )
+            dots.add(
+                Dot(
+                    axes.c2p(x, y),
+                    radius=0.025,
+                    color=MAROON_E if x > y else GREEN_E,
+                )
+            )
+        line = Line(axes.c2p(0, 0), axes.c2p(5, 5), color=GREY, stroke_width=2.5)
+
+        self.play(Write(inp_rect), Write(inp_text))
+        self.wait()
+
+        for i in range(len(model_rects)):
+            self.play(ShowCreation(inp_model_conn[i]), GrowFromCenter(model_rects[i]))
+        self.wait()
+
+        for i in range(len(features)):
+            if not features[i]:
+                self.play(GrowFromCenter(feature_rects[i]))
+            else:
+                self.play(
+                    ShowCreation(model_feature_conn[i]),
+                    GrowFromCenter(feature_rects[i]),
+                )
+        self.wait()
+
+        self.play(ShowCreation(feature_lr_conn))
+        self.play(Write(lr_rect), Write(lr_text))
+        self.play(Write(axes), Write(dots), Write(line))
+        self.wait()
+
+        self.embed()
+
+
+class GhostbusterFigure(Scene):
+    def construct(self):
+        brect = Rectangle(
+            height=FRAME_HEIGHT,
+            width=FRAME_WIDTH,
+            color=WHITE,
+            fill_opacity=1,
+        )
+        self.add(brect)
+
         inp_rect = Rectangle(
             height=3.75,
             width=3.0,
@@ -121,11 +364,11 @@ class Ghostbuster(Scene):
             old_center = lr_text[0:9].get_center()
             lr_text[0:9].move_to([lr_rect.get_center()[0], old_center[1], 0])
 
-            old_center = lr_text[9:21].get_center()
-            lr_text[9:21].move_to([lr_rect.get_center()[0], old_center[1], 0])
+            old_center = lr_text[9:22].get_center()
+            lr_text[9:22].move_to([lr_rect.get_center()[0], old_center[1], 0])
 
-            old_center = lr_text[21:].get_center()
-            lr_text[21:].move_to([lr_rect.get_center()[0], old_center[1], 0])
+            old_center = lr_text[23:].get_center()
+            lr_text[23:].move_to([lr_rect.get_center()[0], old_center[1], 0])
 
         inp_model_conn, model_vector_conn = VGroup(), VGroup()
         for i in range(3):
