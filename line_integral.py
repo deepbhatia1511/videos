@@ -232,7 +232,7 @@ class ArcExp(Scene):
         step3 = TexMobject(r"\lim_{n \rightarrow \infty} "
                            r"\sum_{i=1}^{n}{\sqrt{{\Delta x_i}^2 + {\Delta y_i}^2}}}"
                            )
-        step3.scale(1.5)
+        step3.scale(1)
 
         step4 = TexMobject(
             r"\lim_{n \rightarrow \infty} \sum_{i=1}^{n}{\sqrt{(\frac{\Delta x_i}{\Delta t})^2 +"
